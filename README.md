@@ -9,6 +9,10 @@ step 1: Run the following command.
 
 step 2: Download the data from zerodha. Go to orders and fetch history. Download the data as csv and save in data/reports.
 
+step 3: run:
+
+    python profit_plotter.py
+
 ## CheckList
 
     [ ] Plot profit
