@@ -3,6 +3,13 @@ import pandas as pd
 from datetime import date
 import glob
 import json
+from fetch_stock_price import fetch_stock_price
+
+from datetime import date
+
+def get_current_date():
+    today = date.today()
+    return today.strftime("%Y-%m-%d")
 
 class DayPrice:
     def __init__(self) -> None:
@@ -24,6 +31,9 @@ class Stock:
     def fetch_stock_historical_price(self):
         self.stock_price = yf.downlaod(self.stock_code)
 
+    def set_stock_price(self, stock_price):
+        self.stock_price = stock_price
+
 
 class Portfolio:
     def __init__(self, portfolio_name, stock_list = None) -> None:
@@ -41,6 +51,7 @@ class Portfolio:
         data_json = json.loads(data.to_json(orient = 'records'))
         for each_stock in data_json:
             stock = Stock(each_stock['symbol'],each_stock['quantity'],each_stock['trade_date'],each_stock['symbol'])
+            stock_price = fetch_stock_price(stock.stock_code, "EQ", stock.date_purchased, get_current_date())
             self.stock_list.append(stock)
         # create portfolio objects from the data
 
