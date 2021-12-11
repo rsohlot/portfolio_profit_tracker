@@ -15,6 +15,8 @@ step 3: run:
 
 ## CheckList
 
+    [x] Fetch stock data
+    [ ] Store stocks data
     [ ] Plot profit
     [ ] Predit profit for each stock in portfolio
     [ ] load data from custom file format
