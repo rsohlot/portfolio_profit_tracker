@@ -1,4 +1,4 @@
-from fetch_portfolio import Portfolio
+from portfolio import Portfolio
 
 # create portfolio
 portfolio = Portfolio(portfolio_name='my_investment_portfolio')
