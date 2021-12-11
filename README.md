@@ -8,6 +8,7 @@ step 1: Run the following command.
     pip install -r requirements.txt
 
 step 2: Download the data from zerodha. Go to orders and fetch history. Download the data as csv and save in data/reports.
+else, create a csv ,sample file is in data/sample_data.
 
 step 3: run:
 
@@ -17,6 +18,8 @@ step 3: run:
 
     [x] Fetch stock data
     [x] Store stocks data
+    [ ] Dataset to plot
+    [ ] Handle sell orders
     [ ] Plot profit
     [ ] Add logger
     [ ] Add series other than EQ, like A,B ...

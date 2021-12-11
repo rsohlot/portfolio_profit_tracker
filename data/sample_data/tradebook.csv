@@ -1,0 +1,2 @@
+symbol,isin,trade_date,exchange,segment,series,trade_type,quantity,price,trade_id,order_id,order_execution_time
+RELIANCE,INE00XXXX,2020-07-22,NSE,EQ,EQ,buy,1.000000,2107.15577747,5575474,55441145544,2020-01-22T12:09:58
