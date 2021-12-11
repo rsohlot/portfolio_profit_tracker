@@ -16,8 +16,10 @@ step 3: run:
 ## CheckList
 
     [x] Fetch stock data
-    [ ] Store stocks data
+    [x] Store stocks data
     [ ] Plot profit
+    [ ] Add logger
+    [ ] Add series other than EQ, like A,B ...
     [ ] Predit profit for each stock in portfolio
     [ ] load data from custom file format
     [ ] UI to load file

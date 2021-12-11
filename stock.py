@@ -15,13 +15,16 @@ class DayPrice:
         
 
 class Stock:
-    def __init__(self, symbol:str,quantity:int,first_date:date,last_date:date ,stock_name = None) -> None:
+    def __init__(self, symbol:str,series:str ,first_date:date,last_date:date ,stock_name = None) -> None:
         self.symbol  = symbol
-        self.quantity = quantity
-        self.first_date = None
-        self.last_date = None
+        self.series = series
+        self.first_date = first_date
+        self.last_date = last_date
         self.stock_52_week_high = None
         self.stock_52_week_low = None
+        self.stock_name = stock_name
+        if stock_name is None:
+            self.stock_name = symbol
         # list of Day price
         self.stock_price:list = []
 

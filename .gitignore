@@ -1,4 +1,5 @@
 venv/*
 data/reports/*
+data/*.db
 __pycache__/*
 .vscode/*
