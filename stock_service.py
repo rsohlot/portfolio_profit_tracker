@@ -59,7 +59,7 @@ class StockService:
 
 
     @classmethod
-    def fetch_stock_from_orders(cls, orders):
+    def create_stock_from_orders(cls, orders):
         for each_order in orders:
             # create stock object for each order
             print('fetching sotck for order: ', each_order.symbol)
@@ -117,7 +117,7 @@ class StockService:
         """
         new_col = each_order.symbol + "_rate_qnty"
         if new_col not in stock_df.columns:
-            stock_df[new_col] = []
+            stock_df[new_col] = None
             stock_df.loc[stock_df.loc['date'] >= each_order.order_date, new_col] = [{'rate': each_order.rate, 'quantity': each_order.qnty}]
             stock_df[each_order.symbol + "_value"] = stock_df[new_col].apply(cls.calculate_avg)
             stock_df[each_order.symbol + "_quantity"] = stock_df[new_col].apply(cls.calculattotal_qntye_avg)
