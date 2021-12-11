@@ -55,7 +55,7 @@ class StockService:
         # con.commit()
         # con.close()
         stock_df = stock_df[stock_table_columns]
-        stock_df.to_sql('stocks', con, if_exists='append', index=False)
+        stock_df.to_sql('stocks', con, if_exists='replace', index=False)
 
 
     @classmethod
