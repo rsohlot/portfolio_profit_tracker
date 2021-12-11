@@ -1,4 +1,4 @@
-from os import sync
+# from os import sync
 from nsepython import equity_history, nsefetch
 import pandas as pd
 from utility import get_current_date
@@ -20,6 +20,7 @@ class StockService:
             cur = con.cursor()
             result = cur.execute("SELECT * FROM stocks WHERE symbol = ?", (symbol,))
             stock_df = pd.DataFrame.from_records(result.fetchall(), columns=stock_table_columns)
+            stock_df['date'] = pd.to_datetime(stock_df['date']).dt.strftime('%d-%m-%Y')
         except Exception as e:
             print(e)
             return equity_history(symbol,series,start_date,end_date)
@@ -74,6 +75,7 @@ class StockService:
             # change
             stock_price = cls.map_stock_df_columns(stock_price)
             stock_price['date'] = pd.to_datetime(stock_price['date']).dt.date
+            stock_price['date'] = pd.to_datetime(stock_price['date']).dt.strftime('%d-%m-%Y')
             stock.set_stock_price(stock_price)
             cls.store_stocks(stock_price)
     
@@ -136,7 +138,7 @@ class StockService:
         for each_order in orders:
             if each_order.order_type == 'buy':
                 stock_price = cls.fetch_stock_price(each_order.symbol, each_order.series, each_order.order_date, get_current_date())
-                stock_price = stock_price['date', value_index]
+                stock_price = stock_price[['date', value_index]]
                 profit_loss_df = profit_loss_df.append(stock_price)
                 profit_loss_df.rename(columns={'date':'date', value_index: each_order.symbol}, inplace=True)
                 profit_loss_df = cls.update_rate_qnty(each_order, profit_loss_df)
