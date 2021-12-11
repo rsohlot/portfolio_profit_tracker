@@ -7,10 +7,10 @@ import sqlite3 as sl
 
 stock_table_columns = ['_id','symbol', 'series', 'open_price', 'high_price', 'low_price', 'closing_price', 'last_price', 'prev_close_price', 'total_traded_qty', 'total_traded_value', 'high_52week', 'low_52week', 'total_trades', 'date', 'created_at', 'updated_at']
 class StockService:
-    def equity_history(self, symbol,series,start_date,end_date):
+    @classmethod
+    def equity_history(cls, symbol,series,start_date,end_date):
         payload = nsefetch("https://www.nseindia.com/api/historical/cm/equity?symbol="+symbol+"&series=[%22"+series+"%22]&from="+start_date+"&to="+end_date+"")
-        # return pd.DataFrame.from_records(payload["data"])
-        return payload['data']
+        return pd.DataFrame.from_records(payload["data"])
 
     @classmethod
     def fetch_stock_price(cls, symbol,series,start_date, end_date):
@@ -23,7 +23,7 @@ class StockService:
             stock_df['date'] = pd.to_datetime(stock_df['date']).dt.strftime('%d-%m-%Y')
         except Exception as e:
             print(e)
-            return equity_history(symbol,series,start_date,end_date)
+            return cls.equity_history(symbol,series,start_date,end_date)
         
         max_date = stock_df['date'].max()
         min_date = stock_df['date'].min()
@@ -71,7 +71,6 @@ class StockService:
                 print('skipping stock: ', stock.symbol, 'series: ', stock.series)
                 continue
             stock_price = cls.fetch_stock_price(each_order.symbol,each_order.series,start_date, end_date)
-            stock_price = pd.DataFrame.from_records(stock_price)
             # change
             stock_price = cls.map_stock_df_columns(stock_price)
             stock_price['date'] = pd.to_datetime(stock_price['date']).dt.date
