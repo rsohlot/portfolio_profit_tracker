@@ -3,3 +3,5 @@ data/reports/*
 data/*.db
 __pycache__/*
 .vscode/*
+ppt/*
+.DS_Store
