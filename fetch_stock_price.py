@@ -1,6 +1,4 @@
-import requests
 from nsepython import equity_history, nsefetch
-import pandas as pd
 
 
 def equity_history(symbol,series,start_date,end_date):

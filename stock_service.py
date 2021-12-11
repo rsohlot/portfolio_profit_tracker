@@ -1,4 +1,3 @@
-import requests
 from nsepython import equity_history, nsefetch
 import pandas as pd
 from utility import get_current_date

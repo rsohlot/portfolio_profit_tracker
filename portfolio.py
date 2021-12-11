@@ -1,13 +1,4 @@
-from pandas.core import series
-import yfinance as yf
-import pandas as pd
-from datetime import date
-import glob
-import json
-from fetch_stock_price import fetch_stock_price
 from stock_service import StockService
-from utility import get_current_date
-import uuid
 from order import OrderService
 
 class Portfolio:
