@@ -29,15 +29,16 @@ data = create_portfolio('my_investment_portfolio')
 #convert date column
 data['date'] = pd.to_datetime(data['date'], format = striped_date_format)
 data.sort_values(by=['date'], inplace=True)
+# data['profit'] = data['daily_profit'].cumsum()
 # required data
-required_cols = ['date', 'profit_sum']
+required_cols = ['date']
 profit_col = [col for col in data.columns if '_profit' in col]
 required_cols.extend(profit_col)
 
 data = data[required_cols]
 
 # graph 
-fig = px.line(data, x="date", y="profit_sum")
+fig = px.line(data, x="date", y=data.columns[1:])
 fig.update_traces(mode="markers+lines", hovertemplate=None)
 fig.update_layout(hovermode="x")
 
@@ -51,14 +52,14 @@ server = app.server
 app.layout = html.Div([
     # graph
      dcc.Graph(figure=fig),
-], id='main-div')
+], id='main-div', style = {'display': 'inline-block','height' : '95%', 'width': '95%'})
 
 
 # @app.callback(
 #     Output("line-chart", "figure"))
 # def update_line_chart():
 #     fig = px.line(data, 
-#         x="date", y="profit_sum")
+#         x="date", y="daily_profit")
 #     return fig
 
 app.run_server(debug=True)

@@ -14,3 +14,18 @@ def format_date(date, format=striped_date_format):
     if isinstance(date, str):
         date = datetime.strptime(date,'%Y-%m-%d')
     return date.strftime(format)
+
+def merge_same_cols(cls,df):
+    # refernce : https://stackoverflow.com/questions/69299416/combine-two-columns-with-same-column-name-using-pandas
+    if len(df.columns[df.columns.duplicated()]) > 0:
+        df = (df.set_axis(pd.MultiIndex.from_arrays([df.columns,
+                                                        df.groupby(level=0, axis=1).cumcount()
+                                                    ]), axis=1)
+                .stack(level=1)
+                .sort_index(level=1)
+                .droplevel(1)
+                .drop_duplicates(subset=df.columns[df.columns.duplicated()])
+                )
+    else:
+        pass
+    return df
