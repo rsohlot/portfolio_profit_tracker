@@ -7,13 +7,10 @@ import json
 from datetime import datetime
 from utility import striped_date_format
 
-stock_table_columns = ['_id','symbol', 'series', 'open_price', 'high_price', 'low_price', 'closing_price', 'last_price', 'prev_close_price', 'total_traded_qty', 'total_traded_value', 'high_52week', 'low_52week', 'total_trades', 'date', 'created_at', 'updated_at']
-class StockService:
-    @classmethod
-    def equity_history(cls, symbol,series,start_date,end_date):
-        payload = nsefetch("https://www.nseindia.com/api/historical/cm/equity?symbol="+symbol+"&series=[%22"+series+"%22]&from="+start_date+"&to="+end_date+"")
-        return pd.DataFrame.from_records(payload["data"])
+stock_table_columns = ['_id','symbol', 'series', 'open_price', 'high_price', 'low_price', 'closing_price', 'last_price', 'prev_close_price',
+                     'total_traded_qty', 'total_traded_value', 'high_52week', 'low_52week', 'total_trades', 'date', 'created_at', 'updated_at']
 
+class StockService:
     @classmethod
     def check_duplidate_sotck_record(cls,stock_df):
         stock_df = stock_df.drop_duplicates(subset=['symbol','date'])
@@ -176,22 +173,6 @@ class StockService:
             return stock_df
 
     @classmethod
-    def merge_same_cols(cls,df):
-        # refernce : https://stackoverflow.com/questions/69299416/combine-two-columns-with-same-column-name-using-pandas
-        if len(df.columns[df.columns.duplicated()]) > 0:
-            df = (df.set_axis(pd.MultiIndex.from_arrays([df.columns,
-                                                            df.groupby(level=0, axis=1).cumcount()
-                                                        ]), axis=1)
-                    .stack(level=1)
-                    .sort_index(level=1)
-                    .droplevel(1)
-                    .drop_duplicates(subset=df.columns[df.columns.duplicated()])
-                    )
-        else:
-            pass
-        return df
-
-    @classmethod
     def calculate_profit_loss_df(cls, orders):
         """
         Create a df with index as date and column as symbol and for each row calculate profit/loss.
@@ -217,6 +198,6 @@ class StockService:
                 profit_loss_df[each_order.symbol + "_profit"] = profit_loss_df[each_order.symbol] * profit_loss_df[each_order.symbol + "_quantity"] - profit_loss_df[each_order.symbol + "_value"] * profit_loss_df[each_order.symbol + "_quantity"]
         # profit_loss_df.set_index('date', inplace=True)
         profit_col = profit_loss_df.columns.str.contains('_profit')
-        profit_loss_df['profit_sum'] = profit_loss_df.loc[:, profit_col].sum(axis=1)
+        profit_loss_df['daily_profit'] = profit_loss_df.loc[:, profit_col].sum(axis=1)
         return profit_loss_df
 
