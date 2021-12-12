@@ -1,7 +1,8 @@
 from datetime import date, datetime
 
+striped_date_format ="%d-%m-%Y"
 
-def get_current_date(format='%d-%m-%Y'):
+def get_current_date(format=striped_date_format):
     today = date.today()
     return today.strftime(format)
 
@@ -9,7 +10,7 @@ def get_data_path():
     path = 'data/reports/'
     return path
 
-def format_date(date, format='%d-%m-%Y'):
+def format_date(date, format=striped_date_format):
     if isinstance(date, str):
         date = datetime.strptime(date,'%Y-%m-%d')
     return date.strftime(format)

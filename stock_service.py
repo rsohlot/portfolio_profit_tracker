@@ -1,4 +1,3 @@
-# from os import sync
 from nsepython import equity_history, nsefetch
 import pandas as pd
 from utility import get_current_date
@@ -6,6 +5,7 @@ from stock import Stock
 import sqlite3 as sl
 import json
 from datetime import datetime
+from utility import striped_date_format
 
 stock_table_columns = ['_id','symbol', 'series', 'open_price', 'high_price', 'low_price', 'closing_price', 'last_price', 'prev_close_price', 'total_traded_qty', 'total_traded_value', 'high_52week', 'low_52week', 'total_trades', 'date', 'created_at', 'updated_at']
 class StockService:
@@ -22,13 +22,13 @@ class StockService:
             cur = con.cursor()
             result = cur.execute("SELECT * FROM stocks WHERE symbol = ?", (symbol,))
             stock_df = pd.DataFrame.from_records(result.fetchall(), columns=stock_table_columns)
-            stock_df['date'] = pd.to_datetime(stock_df['date']).dt.strftime('%d-%m-%Y')
+            stock_df['date'] = pd.to_datetime(stock_df['date']).dt.strftime(striped_date_format)
         except Exception as e:
             print(e)
             df = equity_history(symbol,series,start_date,end_date)
             df = cls.map_stock_df_columns(df)
             df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
-            df['date'] = pd.to_datetime(df['date']).dt.strftime('%d-%m-%Y')
+            df['date'] = pd.to_datetime(df['date']).dt.strftime(striped_date_format)
             return df
         
         # if misisng min or max date, then fetch the data from nse
@@ -36,7 +36,7 @@ class StockService:
             df = equity_history(symbol,series,start_date,end_date)
             df = cls.map_stock_df_columns(df)
             df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
-            df['date'] = pd.to_datetime(df['date']).dt.strftime('%d-%m-%Y')
+            df['date'] = pd.to_datetime(df['date']).dt.strftime(striped_date_format)
             return df
         
         max_date_dt = pd.to_datetime(stock_df['date'], format = "%d-%m-%Y").max()
@@ -47,13 +47,14 @@ class StockService:
         # todo: mask and return the data only between start_date and end_date
             return stock_df
         elif min_date_dt > start_date_dt:
-            end_date = min_date_dt.strftime('%d-%m-%Y')
+            end_date = min_date_dt.strftime(striped_date_format)
         elif max_date_dt < end_date_dt:
-            start_date = max_date_dt.strftime('%d-%m-%Y')
+            start_date = max_date_dt.strftime(striped_date_format)
         # todo: fetch only the required data from nse and append to the existing data
         df = equity_history(symbol,series,start_date,end_date)
         df = cls.map_stock_df_columns(df)
         df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
+        df['date'] = pd.to_datetime(df['date']).dt.strftime(striped_date_format)
         return df
 
     @classmethod
@@ -144,21 +145,25 @@ class StockService:
         method will create a column for each symbol.That will contain avg price and quantity
         """
         new_col = each_order.symbol + "_price_quantity"
+        order_date = datetime.strptime(each_order.order_date, striped_date_format)
+        stock_df['date'] = pd.to_datetime(stock_df['date'],format=striped_date_format)
         if new_col not in stock_df.columns:
             stock_df[new_col] = None
             stock_df[new_col] = stock_df[new_col].astype(object)
-            stock_df.loc[stock_df['date'] >= each_order.order_date, new_col] = json.dumps([{'price': each_order.price, 'quantity': each_order.quantity}])
+            stock_df.loc[stock_df['date'] >= order_date, new_col] = json.dumps([{'price': each_order.price, 'quantity': each_order.quantity}])
             stock_df[each_order.symbol + "_value"] = stock_df[new_col].apply(cls.calculate_avg)
             stock_df[each_order.symbol + "_quantity"] = stock_df[new_col].apply(cls.total_quantity)
+            stock_df['date'] = stock_df['date'].dt.strftime(striped_date_format)
             return stock_df
         else:
-            stock_df.loc[stock_df['date'] >= each_order.order_date, 'temp'] = json.dumps([{'price': each_order.price, 'quantity': each_order.quantity}])
+            stock_df.loc[stock_df['date'] >= order_date, 'temp'] = json.dumps([{'price': each_order.price, 'quantity': each_order.quantity}])
             stock_df['temp'].fillna('',inplace=True)
-            # stock_df.loc[stock_df['date'] >= each_order.order_date].apply( lambda row : cls.merge_json_col(row, new_col, 'temp'))
+            # stock_df.loc[stock_df['date'] >= order_date].apply( lambda row : cls.merge_json_col(row, new_col, 'temp'))
             stock_df[new_col] = stock_df.apply( lambda row : cls.merge_json_col(row, new_col, 'temp'),axis = 1)
             stock_df.drop(columns = ['temp'], inplace = True)
             stock_df[each_order.symbol + "_value"] = stock_df[new_col].apply(cls.calculate_avg)
             stock_df[each_order.symbol + "_quantity"] = stock_df[new_col].apply(cls.total_quantity)
+            stock_df['date'] = stock_df['date'].dt.strftime(striped_date_format)
             return stock_df
 
     @classmethod
@@ -182,12 +187,12 @@ class StockService:
         Create a df with index as date and column as symbol and for each row calculate profit/loss.
         """
         value_index = 'closing_price'
-        profit_loss_df = pd.DataFrame()
+        profit_loss_df = pd.DataFrame({'date' : []})
         for each_order in orders:
             if each_order.order_type == 'buy' and each_order.series == 'EQ':
                 stock_price = cls.fetch_stock_price(each_order.symbol, each_order.series, each_order.order_date, get_current_date())
                 stock_price = stock_price[['date', value_index]]
-                profit_loss_df = profit_loss_df.append(stock_price)
+                profit_loss_df = profit_loss_df.merge(stock_price,on = 'date', how = 'outer')
                 profit_loss_df.rename(columns={'date':'date', value_index: each_order.symbol}, inplace=True)
                 # merge the data if same symbol exits
                 profit_loss_df = cls.merge_same_cols(profit_loss_df)
