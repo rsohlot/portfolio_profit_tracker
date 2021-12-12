@@ -218,5 +218,6 @@ class StockService:
         # profit_loss_df.set_index('date', inplace=True)
         profit_col = profit_loss_df.columns.str.contains('_profit')
         profit_loss_df['profit_sum'] = profit_loss_df.loc[:, profit_col].sum(axis=1)
+        profit_loss_df.to_csv('profit_loss_df.csv', index=False)
         return profit_loss_df
 

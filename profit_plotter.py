@@ -5,6 +5,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
+from utility import striped_date_format
 
 # Fetch data
 from portfolio import Portfolio
@@ -26,10 +27,19 @@ def create_portfolio(name):
 
 data = create_portfolio('my_investment_portfolio')
 #convert date column
-data['date'] = pd.to_datetime(data['date'])
+data['date'] = pd.to_datetime(data['date'], format = striped_date_format)
 data.sort_values(by=['date'], inplace=True)
+# required data
+required_cols = ['date', 'profit_sum']
+profit_col = [col for col in data.columns if '_profit' in col]
+required_cols.extend(profit_col)
+
+data = data[required_cols]
+
 # graph 
 fig = px.line(data, x="date", y="profit_sum")
+fig.update_traces(mode="markers+lines", hovertemplate=None)
+fig.update_layout(hovermode="x")
 
 # App for plotting
 app = dash.Dash(
