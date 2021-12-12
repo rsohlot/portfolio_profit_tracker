@@ -214,7 +214,7 @@ class StockService:
                 profit_loss_df = cls.update_price_quantity(each_order, profit_loss_df)
                 if each_order.symbol + "_profit" in profit_loss_df.columns:
                     profit_loss_df.drop(columns=[each_order.symbol + "_profit"],inplace=True)
-                profit_loss_df[each_order.symbol + "_profit"] = profit_loss_df[each_order.symbol + "_value"] * profit_loss_df[each_order.symbol + "_quantity"] - profit_loss_df[each_order.symbol] * profit_loss_df[each_order.symbol + "_quantity"]
+                profit_loss_df[each_order.symbol + "_profit"] = profit_loss_df[each_order.symbol] * profit_loss_df[each_order.symbol + "_quantity"] - profit_loss_df[each_order.symbol + "_value"] * profit_loss_df[each_order.symbol + "_quantity"]
         # profit_loss_df.set_index('date', inplace=True)
         profit_col = profit_loss_df.columns.str.contains('_profit')
         profit_loss_df['profit_sum'] = profit_loss_df.loc[:, profit_col].sum(axis=1)

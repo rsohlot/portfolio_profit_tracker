@@ -18,9 +18,9 @@ step 3: run:
 
     [x] Fetch stock data
     [x] Store stocks data
-    [ ] Dataset to plot
+    [x] Dataset to plot
     [ ] Handle sell orders
-    [ ] Plot profit
+    [x] Plot profit
     [ ] Add logger
     [ ] Add series other than EQ, like A,B ...
     [ ] Predit profit for each stock in portfolio
