@@ -4,6 +4,7 @@ import pandas as pd
 from utility import get_current_date
 from stock import Stock
 import sqlite3 as sl
+import json
 
 stock_table_columns = ['_id','symbol', 'series', 'open_price', 'high_price', 'low_price', 'closing_price', 'last_price', 'prev_close_price', 'total_traded_qty', 'total_traded_value', 'high_52week', 'low_52week', 'total_trades', 'date', 'created_at', 'updated_at']
 class StockService:
@@ -25,25 +26,29 @@ class StockService:
             print(e)
             return cls.equity_history(symbol,series,start_date,end_date)
         
-        max_date = stock_df['date'].max()
-        min_date = stock_df['date'].min()
         # if misisng min or max date, then fetch the data from nse
         if stock_df.empty:
-            return equity_history(symbol,series,start_date,end_date)
+            df = equity_history(symbol,series,start_date,end_date)
+            df = cls.map_stock_df_columns(df)
+            df['date'] = pd.to_datetime(df['date']).dt.date
+            df['date'] = pd.to_datetime(df['date']).dt.strftime('%d-%m-%Y')
+            return df
+        
+        max_date = stock_df['date'].max()
+        min_date = stock_df['date'].min()
         if min_date < start_date and max_date > end_date:
-            # todo: mask and return the data only between start_date and end_date
+        # todo: mask and return the data only between start_date and end_date
             return stock_df
-        elif min_date > start_date and max_date < end_date:
-            # todo: fetch only the required data from nse and append to the existing data
-            return equity_history(symbol,series,start_date,end_date)
         elif min_date > start_date:
             end_date = min_date
-            return equity_history(symbol,series,start_date,end_date)
         elif max_date < end_date:
             start_date = max_date
-            return equity_history(symbol,series,start_date,end_date)
-        else :
-            return equity_history(symbol,series,start_date,end_date)
+        # todo: fetch only the required data from nse and append to the existing data
+        df = equity_history(symbol,series,start_date,end_date)
+        df = cls.map_stock_df_columns(df)
+        df['date'] = pd.to_datetime(df['date']).dt.date
+        df['date'] = pd.to_datetime(df['date']).dt.strftime('%d-%m-%Y')
+        return df
 
     @classmethod
     def store_stocks(cls, stock_df):
@@ -71,10 +76,6 @@ class StockService:
                 print('skipping stock: ', stock.symbol, 'series: ', stock.series)
                 continue
             stock_price = cls.fetch_stock_price(each_order.symbol,each_order.series,start_date, end_date)
-            # change
-            stock_price = cls.map_stock_df_columns(stock_price)
-            stock_price['date'] = pd.to_datetime(stock_price['date']).dt.date
-            stock_price['date'] = pd.to_datetime(stock_price['date']).dt.strftime('%d-%m-%Y')
             stock.set_stock_price(stock_price)
             cls.store_stocks(stock_price)
     
@@ -93,39 +94,81 @@ class StockService:
         return stock_df
 
     @classmethod
-    def calculate_avg(cls, qnty_rate_list):
+    def calculate_avg(cls, quantity_price_list):
         total = 0
         count = 0
-        for each_qnty_rate in qnty_rate_list:
-            total += each_qnty_rate['rate']*each_qnty_rate['quantity']
-            count += each_qnty_rate['quantity']
-        avg_rate = total/count
-        return avg_rate
+        if not quantity_price_list:
+            return 0
+        quantity_price_list = json.loads(quantity_price_list)
+        for each_quantity_price in quantity_price_list:
+            total += each_quantity_price['price']*each_quantity_price['quantity']
+            count += each_quantity_price['quantity']
+        if total == 0 and count == 0:
+            return 0
+        avg_price = total/count
+        return avg_price
 
     @classmethod
-    def total_qnty(cls, qnty_rate_list):
+    def total_quantity(cls, quantity_price_list):
         count = 0
-        for each_qnty_rate in qnty_rate_list:
-            count += each_qnty_rate['quantity']
+        if not quantity_price_list:
+            return 0
+        quantity_price_list = json.loads(quantity_price_list)
+        for each_quantity_price in quantity_price_list:
+            count += each_quantity_price['quantity']
         return count
 
     @classmethod
-    def update_rate_qnty(cls, each_order, stock_df):
+    def merge_json_col(cls, row, first_col, sec_col):
+        # todo: improve
+        if not row[first_col] or row[first_col] == '' or str(row[first_col]) == 'nan':
+            first_json_list = []
+        else:
+            first_json_list = json.loads(row[first_col])
+            #todo: improve
+        if not row[sec_col] or  row[sec_col] == '' or str(row[sec_col]) == 'nan':
+            sec_json_list = []
+        else:
+            sec_json_list = json.loads(row[sec_col])
+        return json.dumps(first_json_list + sec_json_list)
+
+    @classmethod
+    def update_price_quantity(cls, each_order, stock_df):
         """
-        method will create a column for each symbol.That will contain avg rate and qnty
+        method will create a column for each symbol.That will contain avg price and quantity
         """
-        new_col = each_order.symbol + "_rate_qnty"
+        new_col = each_order.symbol + "_price_quantity"
         if new_col not in stock_df.columns:
             stock_df[new_col] = None
-            stock_df.loc[stock_df.loc['date'] >= each_order.order_date, new_col] = [{'rate': each_order.rate, 'quantity': each_order.qnty}]
+            stock_df[new_col] = stock_df[new_col].astype(object)
+            stock_df.loc[stock_df['date'] >= each_order.order_date, new_col] = json.dumps([{'price': each_order.price, 'quantity': each_order.quantity}])
             stock_df[each_order.symbol + "_value"] = stock_df[new_col].apply(cls.calculate_avg)
-            stock_df[each_order.symbol + "_quantity"] = stock_df[new_col].apply(cls.calculattotal_qntye_avg)
+            stock_df[each_order.symbol + "_quantity"] = stock_df[new_col].apply(cls.total_quantity)
             return stock_df
         else:
-            stock_df.loc[stock_df.loc['date'] >= each_order.order_date, new_col] = stock_df[new_col] + [{'rate': each_order.rate, 'qnty': each_order.qnty}]
+            stock_df.loc[stock_df['date'] >= each_order.order_date, 'temp'] = json.dumps([{'price': each_order.price, 'quantity': each_order.quantity}])
+            stock_df['temp'].fillna('',inplace=True)
+            # stock_df.loc[stock_df['date'] >= each_order.order_date].apply( lambda row : cls.merge_json_col(row, new_col, 'temp'))
+            stock_df[new_col] = stock_df.apply( lambda row : cls.merge_json_col(row, new_col, 'temp'),axis = 1)
+            stock_df.drop(columns = ['temp'], inplace = True)
             stock_df[each_order.symbol + "_value"] = stock_df[new_col].apply(cls.calculate_avg)
-            stock_df[each_order.symbol + "_quantity"] = stock_df[new_col].apply(cls.calculattotal_qntye_avg)
+            stock_df[each_order.symbol + "_quantity"] = stock_df[new_col].apply(cls.total_quantity)
             return stock_df
+
+    @classmethod
+    def merge_same_cols(cls,df):
+        if len(df.columns[df.columns.duplicated()]) > 0:
+            df = (df.set_axis(pd.MultiIndex.from_arrays([df.columns,
+                                                            df.groupby(level=0, axis=1).cumcount()
+                                                        ]), axis=1)
+                    .stack(level=1)
+                    .sort_index(level=1)
+                    .droplevel(1)
+                    .drop_duplicates(subset=df.columns[df.columns.duplicated()])
+                    )
+        else:
+            pass
+        return df
 
     @classmethod
     def calculate_profit_loss_df(cls, orders):
@@ -135,13 +178,17 @@ class StockService:
         value_index = 'closing_price'
         profit_loss_df = pd.DataFrame()
         for each_order in orders:
-            if each_order.order_type == 'buy':
+            if each_order.order_type == 'buy' and each_order.series == 'EQ':
                 stock_price = cls.fetch_stock_price(each_order.symbol, each_order.series, each_order.order_date, get_current_date())
                 stock_price = stock_price[['date', value_index]]
                 profit_loss_df = profit_loss_df.append(stock_price)
                 profit_loss_df.rename(columns={'date':'date', value_index: each_order.symbol}, inplace=True)
-                profit_loss_df = cls.update_rate_qnty(each_order, profit_loss_df)
-                profit_loss_df[value_index+"_profit"] = profit_loss_df[each_order.symbol + "_value"] * profit_loss_df[each_order.symbol + "_quantity"] - profit_loss_df[value_index] * profit_loss_df[each_order.symbol + "_quantity"]
+                # merge the data if same symbol exits
+                profit_loss_df = cls.merge_same_cols(profit_loss_df)
+                profit_loss_df = cls.update_price_quantity(each_order, profit_loss_df)
+                if each_order.symbol + "_profit" in profit_loss_df.columns:
+                    profit_loss_df.drop(columns=[each_order.symbol + "_profit"],inplace=True)
+                profit_loss_df[each_order.symbol + "_profit"] = profit_loss_df[each_order.symbol + "_value"] * profit_loss_df[each_order.symbol + "_quantity"] - profit_loss_df[each_order.symbol] * profit_loss_df[each_order.symbol + "_quantity"]
         profit_loss_df.set_index('date', inplace=True)
         return profit_loss_df
 
