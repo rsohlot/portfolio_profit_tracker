@@ -15,6 +15,11 @@ class StockService:
         return pd.DataFrame.from_records(payload["data"])
 
     @classmethod
+    def check_duplidate_sotck_record(cls,stock_df):
+        stock_df = stock_df.drop_duplicates(subset=['symbol','date'])
+        return stock_df
+
+    @classmethod
     def fetch_stock_price(cls, symbol,series,start_date, end_date):
         try:
             # if any issue with db connection, then fetch data from nse
@@ -29,6 +34,7 @@ class StockService:
             df = cls.map_stock_df_columns(df)
             df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
             df['date'] = pd.to_datetime(df['date']).dt.strftime(striped_date_format)
+            df = cls.check_duplidate_sotck_record(df)
             return df
         
         # if misisng min or max date, then fetch the data from nse
@@ -37,6 +43,7 @@ class StockService:
             df = cls.map_stock_df_columns(df)
             df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
             df['date'] = pd.to_datetime(df['date']).dt.strftime(striped_date_format)
+            df = cls.check_duplidate_sotck_record(df)
             return df
         
         max_date_dt = pd.to_datetime(stock_df['date'], format = "%d-%m-%Y").max()
@@ -45,6 +52,7 @@ class StockService:
         end_date_dt = datetime.strptime(end_date, "%d-%m-%Y")
         if min_date_dt < start_date_dt and max_date_dt > end_date_dt:
         # todo: mask and return the data only between start_date and end_date
+            stock_df = cls.check_duplidate_sotck_record(stock_df)
             return stock_df
         elif min_date_dt > start_date_dt:
             end_date = min_date_dt.strftime(striped_date_format)
@@ -55,6 +63,7 @@ class StockService:
         df = cls.map_stock_df_columns(df)
         df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
         df['date'] = pd.to_datetime(df['date']).dt.strftime(striped_date_format)
+        df = cls.check_duplidate_sotck_record(df)
         return df
 
     @classmethod
@@ -168,6 +177,7 @@ class StockService:
 
     @classmethod
     def merge_same_cols(cls,df):
+        # refernce : https://stackoverflow.com/questions/69299416/combine-two-columns-with-same-column-name-using-pandas
         if len(df.columns[df.columns.duplicated()]) > 0:
             df = (df.set_axis(pd.MultiIndex.from_arrays([df.columns,
                                                             df.groupby(level=0, axis=1).cumcount()
@@ -193,9 +203,14 @@ class StockService:
                 stock_price = cls.fetch_stock_price(each_order.symbol, each_order.series, each_order.order_date, get_current_date())
                 stock_price = stock_price[['date', value_index]]
                 profit_loss_df = profit_loss_df.merge(stock_price,on = 'date', how = 'outer')
+                # merge if symbol's data is present, rename that to old
+                if each_order.symbol in profit_loss_df.columns:
+                    profit_loss_df.rename(columns={each_order.symbol : each_order.symbol + '_old'}, inplace = True)
                 profit_loss_df.rename(columns={'date':'date', value_index: each_order.symbol}, inplace=True)
-                # merge the data if same symbol exits
-                profit_loss_df = cls.merge_same_cols(profit_loss_df)
+                # copy the data from old column to new column
+                if each_order.symbol + "_old" in profit_loss_df.columns:
+                    profit_loss_df.loc[profit_loss_df[each_order.symbol].isnull(), each_order.symbol] = profit_loss_df[each_order.symbol + '_old']
+                    profit_loss_df.drop(columns = [each_order.symbol + '_old'], inplace = True)
                 profit_loss_df = cls.update_price_quantity(each_order, profit_loss_df)
                 if each_order.symbol + "_profit" in profit_loss_df.columns:
                     profit_loss_df.drop(columns=[each_order.symbol + "_profit"],inplace=True)
