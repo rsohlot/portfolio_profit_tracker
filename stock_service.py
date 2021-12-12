@@ -5,6 +5,7 @@ from utility import get_current_date
 from stock import Stock
 import sqlite3 as sl
 import json
+from datetime import datetime
 
 stock_table_columns = ['_id','symbol', 'series', 'open_price', 'high_price', 'low_price', 'closing_price', 'last_price', 'prev_close_price', 'total_traded_qty', 'total_traded_value', 'high_52week', 'low_52week', 'total_trades', 'date', 'created_at', 'updated_at']
 class StockService:
@@ -27,6 +28,7 @@ class StockService:
             df = equity_history(symbol,series,start_date,end_date)
             df = cls.map_stock_df_columns(df)
             df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
+            df['date'] = pd.to_datetime(df['date']).dt.strftime('%d-%m-%Y')
             return df
         
         # if misisng min or max date, then fetch the data from nse
@@ -34,17 +36,20 @@ class StockService:
             df = equity_history(symbol,series,start_date,end_date)
             df = cls.map_stock_df_columns(df)
             df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
+            df['date'] = pd.to_datetime(df['date']).dt.strftime('%d-%m-%Y')
             return df
         
-        max_date = stock_df['date'].max()
-        min_date = stock_df['date'].min()
-        if min_date < start_date and max_date > end_date:
+        max_date_dt = pd.to_datetime(stock_df['date'], format = "%d-%m-%Y").max()
+        min_date_dt = pd.to_datetime(stock_df['date'], format = "%d-%m-%Y").min()
+        start_date_dt = datetime.strptime(start_date, "%d-%m-%Y")
+        end_date_dt = datetime.strptime(end_date, "%d-%m-%Y")
+        if min_date_dt < start_date_dt and max_date_dt > end_date_dt:
         # todo: mask and return the data only between start_date and end_date
             return stock_df
-        elif min_date > start_date:
-            end_date = min_date
-        elif max_date < end_date:
-            start_date = max_date
+        elif min_date_dt > start_date_dt:
+            end_date = min_date_dt.strftime('%d-%m-%Y')
+        elif max_date_dt < end_date_dt:
+            start_date = max_date_dt.strftime('%d-%m-%Y')
         # todo: fetch only the required data from nse and append to the existing data
         df = equity_history(symbol,series,start_date,end_date)
         df = cls.map_stock_df_columns(df)

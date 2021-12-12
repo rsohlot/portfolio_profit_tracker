@@ -2,6 +2,6 @@ venv/*
 data/reports/*.csv
 data/*.db
 __pycache__/*
-#.vscode/*
+.vscode/*
 ppt/*
 .DS_Store
