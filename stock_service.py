@@ -24,14 +24,16 @@ class StockService:
             stock_df['date'] = pd.to_datetime(stock_df['date']).dt.strftime('%d-%m-%Y')
         except Exception as e:
             print(e)
-            return cls.equity_history(symbol,series,start_date,end_date)
+            df = equity_history(symbol,series,start_date,end_date)
+            df = cls.map_stock_df_columns(df)
+            df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
+            return df
         
         # if misisng min or max date, then fetch the data from nse
         if stock_df.empty:
             df = equity_history(symbol,series,start_date,end_date)
             df = cls.map_stock_df_columns(df)
-            df['date'] = pd.to_datetime(df['date']).dt.date
-            df['date'] = pd.to_datetime(df['date']).dt.strftime('%d-%m-%Y')
+            df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
             return df
         
         max_date = stock_df['date'].max()
@@ -46,8 +48,7 @@ class StockService:
         # todo: fetch only the required data from nse and append to the existing data
         df = equity_history(symbol,series,start_date,end_date)
         df = cls.map_stock_df_columns(df)
-        df['date'] = pd.to_datetime(df['date']).dt.date
-        df['date'] = pd.to_datetime(df['date']).dt.strftime('%d-%m-%Y')
+        df['date'] = pd.to_datetime(df['date'], format = '%Y-%m-%d %H:%M:%S').dt.date
         return df
 
     @classmethod
