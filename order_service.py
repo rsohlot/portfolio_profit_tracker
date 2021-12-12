@@ -1,5 +1,6 @@
 import json
 import glob
+import sys
 import pandas as pd
 from utility import get_data_path, format_date
 from order import Order
@@ -9,7 +10,11 @@ class OrderService:
     @classmethod
     def load_orders(cls):
         path = get_data_path()
-        data =  pd.concat(map(pd.read_csv, glob.glob(path + "/*.csv"))) 
+        all_files = glob.glob(path + "/*.csv")
+        if len(all_files) == 0:
+            print("No Files Found!!! please add files in (data/reports) to continue...")
+            sys.exit(0)
+        data =  pd.concat(map(pd.read_csv, all_files)) 
         data_json = json.loads(data.to_json(orient = 'records'))
         order_list = []
         for each_stock in data_json:
