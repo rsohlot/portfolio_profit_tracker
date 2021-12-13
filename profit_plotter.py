@@ -26,10 +26,6 @@ def create_portfolio(name):
 
 
 data = create_portfolio('my_investment_portfolio')
-#convert date column
-data['date'] = pd.to_datetime(data['date'], format = striped_date_format)
-data.sort_values(by=['date'], inplace=True)
-# data['profit'] = data['daily_profit'].cumsum()
 # required data
 required_cols = ['date']
 profit_col = [col for col in data.columns if '_profit' in col]
@@ -59,7 +55,7 @@ app.layout = html.Div([
 #     Output("line-chart", "figure"))
 # def update_line_chart():
 #     fig = px.line(data, 
-#         x="date", y="daily_profit")
+#         x="date", y="day_profit_status")
 #     return fig
 
 app.run_server(debug=True)

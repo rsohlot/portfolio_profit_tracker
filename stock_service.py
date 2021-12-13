@@ -198,6 +198,12 @@ class StockService:
                 profit_loss_df[each_order.symbol + "_profit"] = profit_loss_df[each_order.symbol] * profit_loss_df[each_order.symbol + "_quantity"] - profit_loss_df[each_order.symbol + "_value"] * profit_loss_df[each_order.symbol + "_quantity"]
         # profit_loss_df.set_index('date', inplace=True)
         profit_col = profit_loss_df.columns.str.contains('_profit')
-        profit_loss_df['daily_profit'] = profit_loss_df.loc[:, profit_col].sum(axis=1)
+        profit_loss_df['day_profit_status'] = profit_loss_df.loc[:, profit_col].sum(axis=1)
+        profit_loss_df['day_profit_status'] = profit_loss_df['day_profit_status'].fillna(0)
+        #convert date column
+        profit_loss_df['date'] = pd.to_datetime(profit_loss_df['date'], format = striped_date_format)
+        profit_loss_df.sort_values(by=['date'], inplace=True)
+        # profit_loss_df['profit'] = profit_loss_df['day_profit_status'].cumsum()
+        profit_loss_df['daily_profit_and_loss'] = profit_loss_df['day_profit_status'].diff().fillna(profit_loss_df['day_profit_status'])
         return profit_loss_df
 
