@@ -5,13 +5,14 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.express as px
 import pandas as pd
-import dash_bootstrap_components as dbc
+# import dash_bootstrap_components as dbc
 from utility import striped_date_format
-
+import time
 # Fetch data
 from portfolio import Portfolio
 from stock_service import StockService
 
+FETCHING_UPDATED_ORDER_LIST = False
 
 def create_portfolio(name):
     # create portfolio
@@ -62,7 +63,7 @@ fig.update_traces(mode="markers+lines", hovertemplate=None)
 fig.update_layout(hovermode="x")
 
 # App for plotting
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP],
+app = dash.Dash(__name__, #external_stylesheets=[dbc.themes.BOOTSTRAP],
     meta_tags=[{"name": "viewport", "content": "width=device-width"}]
 )
 server = app.server
@@ -81,16 +82,17 @@ app.layout = html.Div([
     dcc.Graph(figure=fig, id='portfolio-profit-graph'),
     # Header
     html.Summary('Order list, Select and unselect to see the profit/loss based on only selected orders...', 
-    style={'text-align': 'center', 'font-size': '20px', 'font-weight': 'bold', 'color': '#0066ff'}),
+    style={'text-align': 'center', 'font-size': '15px', 'font-weight': 'bold', 'color': '#0066ff'}),
     html.Br(),
     #  order checklist
-    dbc.Col(dcc.Checklist(
+     dcc.Loading(
+            id="loading-1", type="default", children=html.Div(id="loading-output-1")
+        ),
+    dcc.Dropdown(
         options=order_list_checklist,
                 value=order_list_value,
-                style={'display': 'inline-block', "padding": "5px"},
-                # labelStyle={'display': 'inline-block',"max-width": "800px", "margin": "auto"},
-                labelStyle = {'display': 'block'},
-             id='order_checklist')),
+                multi=True,
+             id='order_checklist'),
 ], id='main-div', style = {'display': 'inline-block','height' : '95%', 'width': '95%'})
 
 
@@ -113,10 +115,27 @@ def update_line_chart(stocks_selected):
 def update_orders(checked_orders):
     #filter the data
     global data
+    global FETCHING_UPDATED_ORDER_LIST
+    FETCHING_UPDATED_ORDER_LIST = True
     selected_order_objs = [obj for obj in portfolio.order_list if str(obj.order_id) in checked_orders]
     data = StockService.calculate_profit_loss_df(selected_order_objs)
     data, stock_checklist_dict, stock_checklist_values  = filter_fetched_data(data)
+    FETCHING_UPDATED_ORDER_LIST = False
     return stock_checklist_values
+
+@app.callback(
+    Output("loading-output-1", "children"),
+    Input("order_checklist", "value"),
+    prevent_initial_call=True,
+)
+def input_triggers_spinner(value):
+    while True:
+        if FETCHING_UPDATED_ORDER_LIST:
+            time.sleep(5)
+        else:
+            break
+    return "UPDATED"
+
 
 
 app.run_server(debug=True)
