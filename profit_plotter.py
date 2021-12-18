@@ -137,8 +137,10 @@ def input_triggers_spinner(value):
     return "UPDATED"
 
 
-
-app.run_server(debug=True)
+# https://community.plotly.com/t/code-in-if---name-----main---runs-twice/5868
+# https://community.plotly.com/t/dash-multi-page-app-functions-are-called-twice-unintentionally/46450
+# adding use_reloader to stop calling function twice
+app.run_server(debug=True, use_reloader = False)
 
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0')
