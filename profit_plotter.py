@@ -81,7 +81,8 @@ def update_line_chart(stocks_selected):
         req_col.append(each_stock)
     updated_data  = data[req_col]
     fig = fig = px.line(updated_data, x="date", y=updated_data.columns[1:])
-    fig.update_traces(mode="markers+lines", hovertemplate=None)
+    # fig.update_traces(mode="markers+lines", hovertemplate=None)
+    fig.update_traces(mode="lines", hovertemplate=None)
     fig.update_layout(hovermode="x")
     return fig
 
