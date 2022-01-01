@@ -35,7 +35,8 @@ data = data[required_cols]
 
 # graph 
 fig = px.line(data, x="date", y=data.columns[1:])
-fig.update_traces(mode="markers+lines", hovertemplate=None)
+# fig.update_traces(mode="markers+lines", hovertemplate=None)
+fig.update_traces(mode="lines", hovertemplate=None)
 fig.update_layout(hovermode="x")
 
 # create data for app
@@ -84,7 +85,7 @@ def update_line_chart(stocks_selected):
     fig.update_layout(hovermode="x")
     return fig
 
-app.run_server(debug=True)
+app.run_server(debug=True, use_reloader = False)
 
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0')

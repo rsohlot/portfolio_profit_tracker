@@ -11,7 +11,10 @@ step 2: Download the data from zerodha. Go to orders and fetch history. Download
 else, create a csv ,sample file is in data/sample_data.
 
     PLEASE ADD IPO ORDER MANUALLY!!!
-    To check the IPO order details. Fo to holdings in zerodha, click ... option button (available with sotck name), Click on "View Breakdown".You will get id, date purched about , quantity details.
+    To check the IPO order details. Go to holdings in zerodha, click ... option button (available with sotck name), Click on "View Breakdown".You will get id, date purched about , quantity details.
+
+Assumption:
+    trade date in file should be in yyyy-mm-dd format.
 
 step 3: run:
 
@@ -22,7 +25,7 @@ step 3: run:
     [x] Fetch stock data
     [x] Store stocks data
     [x] Dataset to plot
-    [ ] Handle sell orders
+    [x] Handle sell orders
     [x] Plot profit
     [ ] Add logger
     [ ] Add series other than EQ, like A,B ...

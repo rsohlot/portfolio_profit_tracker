@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from dateutil import parser
 
 striped_date_format ="%d-%m-%Y"
 
@@ -12,6 +13,7 @@ def get_data_path():
 
 def format_date(date, format=striped_date_format):
     if isinstance(date, str):
+        # date = parser.parse(date)
         date = datetime.strptime(date,'%Y-%m-%d')
     return date.strftime(format)
 
