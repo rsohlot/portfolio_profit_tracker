@@ -59,7 +59,8 @@ order_list_value = [each_oder['value'] for each_oder in order_list_checklist]
 
 # graph 
 fig = px.line(data, x="date", y=data.columns[1:])
-fig.update_traces(mode="markers+lines", hovertemplate=None)
+# fig.update_traces(mode="markers+lines", hovertemplate=None)
+fig.update_traces(mode="lines", hovertemplate=None)
 fig.update_layout(hovermode="x")
 
 # App for plotting
@@ -137,9 +138,11 @@ def input_triggers_spinner(value):
     return "UPDATED"
 
 
+
 # https://community.plotly.com/t/code-in-if---name-----main---runs-twice/5868
 # https://community.plotly.com/t/dash-multi-page-app-functions-are-called-twice-unintentionally/46450
 # adding use_reloader to stop calling function twice
+
 app.run_server(debug=True, use_reloader = False)
 
 if __name__ == '__main__':
