@@ -35,7 +35,8 @@ data = data[required_cols]
 
 # graph 
 fig = px.line(data, x="date", y=data.columns[1:])
-fig.update_traces(mode="markers+lines", hovertemplate=None)
+# fig.update_traces(mode="markers+lines", hovertemplate=None)
+fig.update_traces(mode="lines", hovertemplate=None)
 fig.update_layout(hovermode="x")
 
 # App for plotting
