@@ -51,6 +51,7 @@ class StockService:
 
     @classmethod
     def fetch_stock_price(cls, symbol,series,start_date, end_date):
+        print('fetching stock for order: ', symbol)
         try:
             # if any issue with db connection, then fetch data from nse
             con = sl.connect('data/stocks.db')
@@ -102,7 +103,6 @@ class StockService:
     def create_stock_from_orders(cls, orders):
         for each_order in orders:
             # create stock object for each order
-            print('fetching sotck for order: ', each_order.symbol)
             start_date = each_order.order_date
             end_date  = get_current_date()
             stock = Stock(each_order.symbol, each_order.series, start_date, end_date)

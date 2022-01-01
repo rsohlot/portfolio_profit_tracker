@@ -16,6 +16,9 @@ else, create a csv ,sample file is in data/sample_data.
 Assumption:
     trade date in file should be in yyyy-mm-dd format.
 
+Assumption:
+    trade date in file should be in yyyy-mm-dd format.
+
 step 3: run:
 
     python profit_plotter.py
