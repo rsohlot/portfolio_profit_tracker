@@ -3,3 +3,7 @@ pandas
 plotly==5.4.0
 dash
 dash-daq
+# for prediction
+tensorflow
+sklearn
+matplotlib

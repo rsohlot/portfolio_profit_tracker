@@ -9,7 +9,7 @@ class Portfolio:
 
     def load(self, source='zerodha'):
         self.order_list = OrderService.load_orders()
-        StockService.create_stock_from_orders(self.order_list)
+        # StockService.create_stock_from_orders(self.order_list)
 
     def create_profit_df(self):
         """

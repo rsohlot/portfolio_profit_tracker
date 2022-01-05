@@ -5,3 +5,10 @@ __pycache__/*
 .vscode/*
 ppt/*
 .DS_Store
+.idea
+csv-results
+data/*.csv
+logs/*
+prediction/__pycache__/*
+prediction/data/*.db
+results/*

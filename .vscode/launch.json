@@ -10,6 +10,34 @@
             "request": "launch",
             "program": "${workspaceFolder}/profit_plotter.py",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "test_prediction",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/prediction/test.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "train_prediction",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/prediction/train.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "train_portfolio",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/prediction/train_portfolio.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "predict",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/prediction/predict.py",
+            "console": "integratedTerminal"
         }
     ]
 }
