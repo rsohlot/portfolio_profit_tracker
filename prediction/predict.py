@@ -15,7 +15,7 @@ import os
 import sys
 root_folder = os.path.join(sys.path[0],"../").replace("\\","/")
 sys.path.append(root_folder)
-from prediction.parameters import (symbol, equity, start_date, end_date, ADJCLOSE_COLUMN)
+from prediction.parameters import (symbol, equity, start_date, end_date, ADJCLOSE_COLUMN, SCALE, N_STEPS)
 from stock_service import StockService
 stock_service = StockService()
 
@@ -31,6 +31,21 @@ def shuffle_in_unison(a, b):
     np.random.shuffle(a)
     np.random.set_state(state)
     np.random.shuffle(b)
+
+
+def predict(model, data):
+    # retrieve the last sequence from data
+    last_sequence = data["last_sequence"][-N_STEPS:]
+    # expand dimension
+    last_sequence = np.expand_dims(last_sequence, axis=0)
+    # get the prediction (scaled from 0 to 1)
+    prediction = model.predict(last_sequence)
+    # get the price (by inverting the scaling)
+    if SCALE:
+        predicted_price = data["column_scaler"][ADJCLOSE_COLUMN].inverse_transform(prediction)[0][0]
+    else:
+        predicted_price = prediction[0][0]
+    return predicted_price
 
 
 def load_data(ticker, n_steps=50, scale=True, shuffle=True, lookup_step=1, split_by_date=True,

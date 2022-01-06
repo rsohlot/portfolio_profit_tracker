@@ -4,8 +4,8 @@ from tensorflow.keras.layers import LSTM
 
 import os
 import sys
-# root_folder = os.path.join(sys.path[0],"../").replace("\\","/")
-# sys.path.append(root_folder)
+root_folder = os.path.join(sys.path[0],"../").replace("\\","/")
+sys.path.append(root_folder)
 from utility import get_current_date
 
 # Window size or the sequence length

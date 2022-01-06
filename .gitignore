@@ -12,3 +12,6 @@ logs/*
 prediction/__pycache__/*
 prediction/data/*.db
 results/*
+prediction/logs/*
+prediction/results/*
+prediction/data/*
